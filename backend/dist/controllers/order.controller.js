@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllOrders = exports.getUserOrders = exports.createOrder = void 0;
+exports.getOrderById = exports.getAllOrders = exports.getUserOrders = exports.createOrder = void 0;
 // @ts-ignore
 const client_1 = require("../generated/client/client");
 // @ts-ignore
@@ -76,3 +76,19 @@ const getAllOrders = async (req, res) => {
     }
 };
 exports.getAllOrders = getAllOrders;
+const getOrderById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const order = await prisma.order.findUnique({
+            where: { id: String(id) },
+            include: { items: { include: { product: true } } },
+        });
+        if (!order)
+            return res.status(404).json({ error: 'Order not found' });
+        res.json(order);
+    }
+    catch (error) {
+        res.status(500).json({ error: 'Failed to fetch order' });
+    }
+};
+exports.getOrderById = getOrderById;

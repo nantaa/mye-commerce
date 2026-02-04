@@ -6,4 +6,5 @@ const router = (0, express_1.Router)();
 router.post('/', order_controller_1.createOrder);
 router.get('/user/:userId', order_controller_1.getUserOrders);
 router.get('/admin/all', order_controller_1.getAllOrders);
+router.get('/:id', order_controller_1.getOrderById);
 exports.default = router;

@@ -78,3 +78,19 @@ export const getAllOrders = async (req: Request, res: Response) => {
         res.status(500).json({ error: 'Failed to fetch all orders' });
     }
 }
+
+export const getOrderById = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const order = await prisma.order.findUnique({
+            where: { id: String(id) },
+            include: { items: { include: { product: true } } },
+        });
+
+        if (!order) return res.status(404).json({ error: 'Order not found' });
+
+        res.json(order);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch order' });
+    }
+}
