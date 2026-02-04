@@ -30,17 +30,28 @@ export const createOrder = async (req: Request, res: Response) => {
 
             // 2. Deduct stock and validate availability
             for (const item of items) {
-                const product = await tx.product.findUnique({
-                    where: { id: item.productId },
-                });
+                // If item has a specific variantId (client should send this if it's a variant)
+                // Schema: OrderItem actually doesn't store variantId directly in the relation...
+                // Wait, OrderItem definition: id, orderId, productId, quantity, price.
+                // It DOES NOT have variantId. This is a schema limitation for a full e-commerce but okay for MVP if we track via ProductVariant manually or just reduce generic stock?
+                // The Schema HAS ProductVariant. But OrderItem doesn't link to it.
+                // Assumption: Client sends `variantId` in the `items` payload. 
+                // We will deduct the stock of that variant.
+                // Ideally OrderItem should have optional variantId.
 
-                // Note: For simplicity, we are not tracking variant stock in this basic implementation yet
-                // If variants were used, we would check ProductVariant
+                if (item.variantId) {
+                    const variant = await tx.productVariant.findUnique({
+                        where: { id: item.variantId },
+                    });
 
-                // This is a placeholder for stock check (schema doesn't have simple stock on Product, only Variant mostly)
-                // Let's assume for now we don't block on stock for this "MVP" step unless we added stock to Product model
-                // which we didn't in the initial schema (it was on ProductVariant). 
-                // We will skip strict stock deduction for now to avoid complexity errors if variants aren't fully set up.
+                    if (!variant) throw new Error(`Variant ${item.variantId} not found`);
+                    if (variant.stock < item.quantity) throw new Error(`Insufficient stock for variant ${variant.name}`);
+
+                    await tx.productVariant.update({
+                        where: { id: item.variantId },
+                        data: { stock: { decrement: item.quantity } },
+                    });
+                }
             }
 
             return order;

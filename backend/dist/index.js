@@ -12,11 +12,13 @@ const PORT = process.env.PORT || 4000;
 const product_routes_1 = __importDefault(require("./routes/product.routes"));
 const payment_routes_1 = __importDefault(require("./routes/payment.routes"));
 const order_routes_1 = __importDefault(require("./routes/order.routes"));
+const analytics_routes_1 = __importDefault(require("./routes/analytics.routes"));
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 app.use('/api/products', product_routes_1.default);
 app.use('/api/payments', payment_routes_1.default);
 app.use('/api/orders', order_routes_1.default);
+app.use('/api/analytics', analytics_routes_1.default);
 app.get('/', (req, res) => {
     res.send('E-Commerce Backend is running!');
 });
