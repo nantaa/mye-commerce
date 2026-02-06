@@ -16,7 +16,7 @@ import { authMiddleware } from './middleware/auth.middleware';
 
 app.use(cors());
 app.use(express.json());
-app.use(authMiddleware); // Populates req.auth on every request (loose mode)
+app.use(authMiddleware as any); // Populates req.auth on every request
 
 app.use('/api/products', productRoutes);
 app.use('/api/payments', paymentRoutes);

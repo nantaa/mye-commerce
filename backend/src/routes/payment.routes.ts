@@ -1,9 +1,10 @@
 import { Router } from 'express';
-import { createStripeIntent, createMidtransSnap } from '../controllers/payment.controller';
+import { createXenditInvoice, createDokuPayment, createMidtransSnap } from '../controllers/payment.controller';
 
 const router = Router();
 
-router.post('/create-stripe-intent', createStripeIntent);
+router.post('/create-xendit-invoice', createXenditInvoice);
+router.post('/create-doku-payment', createDokuPayment);
 router.post('/create-midtrans-snap', createMidtransSnap);
 
 export default router;

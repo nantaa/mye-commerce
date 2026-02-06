@@ -1,23 +1,46 @@
 import { Request, Response } from 'express';
-import stripe from '../lib/stripe';
+// @ts-ignore
+import { Invoice } from '../lib/xendit';
+import { createDokuInvoice } from '../lib/doku';
 import { snap } from '../lib/midtrans';
 
-export const createStripeIntent = async (req: Request, res: Response) => {
-    try {
-        const { amount, currency = 'usd' } = req.body;
 
-        const paymentIntent = await stripe.paymentIntents.create({
-            amount: Math.round(amount * 100), // Stripe expects cents
-            currency,
-            automatic_payment_methods: {
-                enabled: true,
-            },
+export const createXenditInvoice = async (req: Request, res: Response) => {
+    try {
+        const { orderId, amount, customerEmail } = req.body;
+
+        // Setup invoice data
+        const invoiceData = {
+            externalId: orderId,
+            amount: amount,
+            payerEmail: customerEmail,
+            description: `Invoice for Order #${orderId}`,
+            shouldSendEmail: true,
+        };
+
+        const resp = await Invoice.createInvoice({
+            data: invoiceData,
         });
 
-        res.json({ clientSecret: paymentIntent.client_secret });
+        res.json({ invoiceUrl: resp.invoiceUrl });
+
     } catch (error) {
-        console.error('Stripe error:', error);
-        res.status(500).json({ error: 'Failed to create payment intent' });
+        console.error("Xendit Error:", error);
+        res.status(500).json({ error: "Failed to create Xendit invoice" });
+    }
+};
+
+
+export const createDokuPayment = async (req: Request, res: Response) => {
+    try {
+        const { orderId, amount, customerEmail } = req.body;
+
+        const response = await createDokuInvoice(orderId, amount, customerEmail);
+
+        res.json({ paymentUrl: response.response.payment.url }); // Adapting to Doku response structure
+    } catch (error) {
+        console.error('Doku Error:', error);
+        res.status(500).json({ error: 'Failed to create Doku payment' });
     }
 };
 
